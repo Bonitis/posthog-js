@@ -1,3 +1,26 @@
+## 1.81.2 - 2023-09-28
+
+- Fix config access (#816)
+- fix: Remove complex get_config (#812)
+- fix: Mask page URLs in session recordings (#811)
+
+## 1.81.1 - 2023-09-26
+
+- fix(types): Relative import to fix typescript compilation (#809)
+
+## 1.81.0 - 2023-09-25
+
+- feat(surveys): Make surveys site app native to posthog-js (#801)
+
+## 1.80.0 - 2023-09-25
+
+- Add root $el_text (#806)
+
+## 1.79.1 - 2023-09-20
+
+- fix: Increase timeout to 60 seconds (#803)
+- chore: add tests on impact of empty autocapture config (#802)
+
 ## 1.79.0 - 2023-09-15
 
 - feat: add an attribute denylist for autocapture (#800)

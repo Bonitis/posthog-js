@@ -4,6 +4,7 @@ import { RetryQueue } from './retry-queue'
 
 export type Property = any
 export type Properties = Record<string, Property>
+
 export interface CaptureResult {
     uuid: string
     event: string
@@ -74,7 +75,6 @@ export interface PostHogConfig {
     // defaults to the empty array
     custom_blocked_useragents: string[]
     save_referrer: boolean
-    test: boolean
     verbose: boolean
     capture_pageview: boolean
     capture_pageleave: boolean
@@ -233,6 +233,7 @@ export interface DecideResponse {
         consoleLogRecordingEnabled?: boolean
         recorderVersion?: 'v1' | 'v2'
     }
+    surveys?: boolean
     toolbarParams: ToolbarParams
     editorParams?: ToolbarParams /** @deprecated, renamed to toolbarParams, still present on older API responses */
     toolbarVersion: 'toolbar' /** @deprecated, moved to toolbarParams */

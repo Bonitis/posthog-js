@@ -1,59 +1,12 @@
 import { PostHog } from './posthog-core'
 import { SURVEYS } from './constants'
+import { _isUrlMatchingRegex } from './utils'
+import { SurveyCallback, SurveyUrlMatchType } from 'posthog-surveys-types'
 
-/**
- * Having Survey types in types.ts was confusing tsc
- * and generating an invalid module.d.ts
- * See https://github.com/PostHog/posthog-js/issues/698
- */
-export interface SurveyAppearance {
-    background_color?: string
-    button_color?: string
-    text_color?: string
-}
-
-export enum SurveyType {
-    Popover = 'Popover',
-    Button = 'Button',
-    Email = 'Email',
-    FullScreen = 'Fullscreen',
-}
-
-export interface SurveyQuestion {
-    type: SurveyQuestionType
-    question: string
-    required?: boolean
-    link?: boolean
-    choices?: string[]
-}
-
-export enum SurveyQuestionType {
-    Open = 'open',
-    MultipleChoiceSingle = 'multiple_single',
-    MultipleChoiceMulti = 'multiple_multi',
-    NPS = 'nps',
-    Rating = 'rating',
-    Link = 'link',
-}
-
-export interface SurveyResponse {
-    surveys: Survey[]
-}
-
-export type SurveyCallback = (surveys: Survey[]) => void
-
-export interface Survey {
-    // Sync this with the backend's SurveySerializer!
-    name: string
-    description: string
-    type: SurveyType
-    linked_flag_key?: string | null
-    targeting_flag_key?: string | null
-    questions: SurveyQuestion[]
-    appearance?: SurveyAppearance | null
-    conditions?: { url?: string; selector?: string } | null
-    start_date?: string | null
-    end_date?: string | null
+export const surveyUrlValidationMap: Record<SurveyUrlMatchType, (conditionsUrl: string) => boolean> = {
+    contains: (conditionsUrl) => window.location.href.indexOf(conditionsUrl) > -1,
+    regex: (conditionsUrl) => _isUrlMatchingRegex(window.location.href, conditionsUrl),
+    exact: (conditionsUrl) => window.location.href === conditionsUrl,
 }
 
 export class PostHogSurveys {
@@ -67,7 +20,7 @@ export class PostHogSurveys {
         const existingSurveys = this.instance.get_property(SURVEYS)
         if (!existingSurveys || forceReload) {
             this.instance._send_request(
-                `${this.instance.get_config('api_host')}/api/surveys/?token=${this.instance.get_config('token')}`,
+                `${this.instance.config.api_host}/api/surveys/?token=${this.instance.config.token}`,
                 {},
                 { method: 'GET' },
                 (response) => {
@@ -90,8 +43,10 @@ export class PostHogSurveys {
                 if (!survey.conditions) {
                     return true
                 }
+
+                // use urlMatchType to validate url condition, fallback to contains for backwards compatibility
                 const urlCheck = survey.conditions?.url
-                    ? window.location.href.indexOf(survey.conditions.url) > -1
+                    ? surveyUrlValidationMap[survey.conditions?.urlMatchType ?? 'contains'](survey.conditions.url)
                     : true
                 const selectorCheck = survey.conditions?.selector
                     ? document.querySelector(survey.conditions.selector)
